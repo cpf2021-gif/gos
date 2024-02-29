@@ -1,0 +1,6 @@
+pre-commit:
+  commands:
+    lint:
+      glob: "*.go"
+      run: golangci-lint run -E gofmt --fix
+      stage_fixed: true
