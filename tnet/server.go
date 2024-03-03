@@ -1,8 +1,8 @@
 package tnet
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"net"
 
 	"github.com/cpf2021-gif/gos/tiface"
@@ -21,6 +21,19 @@ type Server struct {
 
 // Server implements tiface.IServer
 var _ tiface.IServer = (*Server)(nil)
+
+// CallBackToClient 回显业务
+func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+	// 回显业务
+	fmt.Printf("[Conn Handle] Echo... , Received from : %s, data: %s", conn.RemoteAddr().String(), string(data[:cnt]))
+
+	if _, err := conn.Write(data[:cnt]); err != nil {
+		fmt.Println("write back buf err ", err)
+		return errors.New("callback error")
+	}
+
+	return nil
+}
 
 func (s *Server) Start() {
 	go func() {
@@ -41,6 +54,7 @@ func (s *Server) Start() {
 		}
 
 		fmt.Println("Start [gos] Server v0.1 successfully, ", "Name: ", s.Name, " Listening...")
+		var cid uint32 = 0
 
 		// 3. 阻塞的等待客户端连接，处理客户端连接业务(读写)
 		for {
@@ -51,31 +65,12 @@ func (s *Server) Start() {
 				continue
 			}
 
-			// 已经与客户端建立连接，做一些业务，做一个最基本的回显服务
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					cnt, err := conn.Read(buf)
+			// 绑定业务方法和客户端连接
+			dealConn := NewConnection(conn, cid, CallBackToClient)
+			cid++
 
-					if err == io.EOF {
-						fmt.Println("client Close")
-						break
-					}
-
-					if err != nil {
-						fmt.Println("Receive Buffer error: ", err)
-						continue
-					}
-
-					fmt.Printf("Receive Buffer: %s, cnt = %d\n", buf, cnt)
-
-					// 回显
-					if _, err := conn.Write(buf[:cnt]); err != nil {
-						fmt.Println("Write Buffer error: ", err)
-						continue
-					}
-				}
-			}()
+			// 启动当前的连接业务处理
+			go dealConn.Start()
 		}
 	}()
 }
