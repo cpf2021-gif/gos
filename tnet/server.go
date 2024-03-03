@@ -1,7 +1,6 @@
 package tnet
 
 import (
-	"errors"
 	"fmt"
 	"net"
 
@@ -17,23 +16,12 @@ type Server struct {
 	IP string
 	// 服务器的端口
 	Port int
+	// 当前Server添加一个router，server注册的连接对应的处理业务
+	Router tiface.IRouter
 }
 
 // Server implements tiface.IServer
 var _ tiface.IServer = (*Server)(nil)
-
-// CallBackToClient 回显业务
-func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-	// 回显业务
-	fmt.Printf("[Conn Handle] Echo... , Received from : %s, data: %s", conn.RemoteAddr().String(), string(data[:cnt]))
-
-	if _, err := conn.Write(data[:cnt]); err != nil {
-		fmt.Println("write back buf err ", err)
-		return errors.New("callback error")
-	}
-
-	return nil
-}
 
 func (s *Server) Start() {
 	go func() {
@@ -66,7 +54,7 @@ func (s *Server) Start() {
 			}
 
 			// 绑定业务方法和客户端连接
-			dealConn := NewConnection(conn, cid, CallBackToClient)
+			dealConn := NewConnection(conn, cid, s.Router)
 			cid++
 
 			// 启动当前的连接业务处理
@@ -87,6 +75,11 @@ func (s *Server) Serve() {
 
 	// 阻塞
 	select {}
+}
+
+func (s *Server) AddRouter(router tiface.IRouter) {
+	s.Router = router
+	fmt.Println("Add Router successfully!")
 }
 
 // NewServer creates a new server
