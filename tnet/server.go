@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/cpf2021-gif/gos/tiface"
+	"github.com/cpf2021-gif/gos/utils"
 )
 
 type Server struct {
@@ -25,7 +26,14 @@ var _ tiface.IServer = (*Server)(nil)
 
 func (s *Server) Start() {
 	go func() {
-		fmt.Printf("[Start] Server Listenner at IP: %s, Port %d, is starting\n", s.IP, s.Port)
+		fmt.Printf("[Gos] Server Name: %s, listenner at IP: %s, Port: %d is starting\n",
+			utils.GlobalConfig.ServerCfg.Name,
+			utils.GlobalConfig.ServerCfg.Host,
+			utils.GlobalConfig.ServerCfg.TcpPort)
+		fmt.Printf("[Gos] Version: %s, MaxConn: %d, MaxPacketSize: %d\n",
+			utils.GlobalConfig.Gos.Version,
+			utils.GlobalConfig.Gos.MaxConn,
+			utils.GlobalConfig.Gos.MaxPacketSize)
 
 		// 1. 获取一个TCP的Addr
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
@@ -83,12 +91,12 @@ func (s *Server) AddRouter(router tiface.IRouter) {
 }
 
 // NewServer creates a new server
-func NewServer(name string) tiface.IServer {
+func NewServer() tiface.IServer {
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalConfig.ServerCfg.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalConfig.ServerCfg.Host,
+		Port:      utils.GlobalConfig.ServerCfg.TcpPort,
 	}
 
 	return s
