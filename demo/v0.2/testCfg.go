@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Println(utils.GlobalConfig.Gos.Version)
+	fmt.Printf("%+v\n", utils.GlobalConfig)
 
 	utils.LoadConfig("./demo/v0.2/")
 
