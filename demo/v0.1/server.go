@@ -5,6 +5,7 @@ import (
 
 	"github.com/cpf2021-gif/gos/tiface"
 	"github.com/cpf2021-gif/gos/tnet"
+	"github.com/cpf2021-gif/gos/utils"
 )
 
 type PingRouter struct {
@@ -36,8 +37,11 @@ func (pr *PingRouter) PostHandle(request tiface.IRequest) {
 }
 
 func main() {
+	// 读取配置
+	utils.LoadConfig("./demo/v0.1/")
+
 	// 创建一个server句柄
-	s := tnet.NewServer("[gos] Server v0.1")
+	s := tnet.NewServer()
 
 	// 配置路由
 	s.AddRouter(&PingRouter{})
