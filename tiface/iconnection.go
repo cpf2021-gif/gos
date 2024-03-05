@@ -19,7 +19,7 @@ type IConnection interface {
 	RemoteAddr() net.Addr
 
 	// 发送数据
-	Send(data []byte) error
+	SendMsg(msgId uint32, data []byte) error
 }
 
 // 处理业务

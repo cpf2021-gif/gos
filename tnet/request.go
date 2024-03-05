@@ -7,7 +7,7 @@ type Request struct {
 	conn tiface.IConnection
 
 	// 客户端请求的数据
-	data []byte
+	msg tiface.IMessage
 }
 
 // Request implements tiface.IRequest
@@ -20,5 +20,10 @@ func (r *Request) GetConnection() tiface.IConnection {
 
 // GetData 得到客户端请求的数据
 func (r *Request) GetData() []byte {
-	return r.data
+	return r.msg.GetData()
+}
+
+// GetMsgID 得到客户端请求的消息的ID
+func (r *Request) GetMsgID() uint32 {
+	return r.msg.GetMsgId()
 }
