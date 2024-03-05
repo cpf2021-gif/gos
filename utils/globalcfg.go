@@ -53,5 +53,5 @@ type ServerCfg struct {
 type GosCfg struct {
 	Version       string `mapstructure:"version" json:"version" yaml:"version"`
 	MaxConn       int    `mapstructure:"max_conn" json:"max_conn" yaml:"max_conn"`
-	MaxPacketSize int    `mapstructure:"max_packet_size" json:"max_packet_size" yaml:"max_packet_size"`
+	MaxPacketSize uint32 `mapstructure:"max_packet_size" json:"max_packet_size" yaml:"max_packet_size"`
 }
