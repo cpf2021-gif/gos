@@ -13,32 +13,34 @@ type PingRouter struct {
 }
 
 // Test PreHandle
-func (pr *PingRouter) PreHandle(request tiface.IRequest) {
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("before ping... ping... ping...\n"))
-	if err != nil {
-		fmt.Println("call back before ping... ping... ping... error")
-	}
-}
+// func (pr *PingRouter) PreHandle(request tiface.IRequest) {
+// 	_, err := request.GetConnection().GetTCPConnection().Write([]byte("before ping... ping... ping...\n"))
+// 	if err != nil {
+// 		fmt.Println("call back before ping... ping... ping... error")
+// 	}
+// }
 
 // Test Handle
 func (pr *PingRouter) Handle(request tiface.IRequest) {
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping... ping... ping...\n"))
-	if err != nil {
+	// 先读取客户端的数据，再回写ping... ping... ping...
+	fmt.Println("recv from client: msgId=", request.GetMsgID(),
+		", data=", string(request.GetData()))
+	if err := request.GetConnection().SendMsg(1, []byte("ping... ping... ping...")); err != nil {
 		fmt.Println("call back ping... ping... ping... error")
 	}
 }
 
 // Test PostHandle
-func (pr *PingRouter) PostHandle(request tiface.IRequest) {
-	_, err := request.GetConnection().GetTCPConnection().Write([]byte("after ping... ping... ping...\n"))
-	if err != nil {
-		fmt.Println("call back after ping... ping... ping... error")
-	}
-}
+// func (pr *PingRouter) PostHandle(request tiface.IRequest) {
+// 	_, err := request.GetConnection().GetTCPConnection().Write([]byte("after ping... ping... ping...\n"))
+// 	if err != nil {
+// 		fmt.Println("call back after ping... ping... ping... error")
+// 	}
+// }
 
 func main() {
 	// 读取配置
-	utils.LoadConfig("./demo/v0.1/")
+	utils.LoadConfig(".")
 
 	// 创建一个server句柄
 	s := tnet.NewServer()
