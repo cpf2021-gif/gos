@@ -87,7 +87,7 @@ func (s *Server) Serve() {
 
 func (s *Server) AddRouter(msgId uint32, router tiface.IRouter) {
 	s.MsgHandle.AddRouter(msgId, router)
-	fmt.Println("Add Router successfully!")
+	fmt.Println("Add Router successfully!", "msgId =", msgId)
 }
 
 // NewServer creates a new server
