@@ -19,6 +19,9 @@ type Connection struct {
 	// 当前连接的状态
 	isClosed bool
 
+	// 无缓冲管道，用于读、写goroutine之间的消息通信
+	msgChan chan []byte
+
 	// 绑定MsgID和对应的处理业务API关系
 	MsgHandle tiface.IMsgHandle
 
@@ -35,6 +38,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandle tiface.IMsgHandle
 		Conn:      conn,
 		ConnID:    connID,
 		isClosed:  false,
+		msgChan:   make(chan []byte),
 		MsgHandle: msgHandle,
 		ExitChan:  make(chan bool, 1),
 	}
@@ -44,7 +48,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandle tiface.IMsgHandle
 
 // StartReader 启动连接的读数据业务
 func (c *Connection) startReader() {
-	fmt.Println("Reader Goroutine is running...")
+	fmt.Println("[Reader Goroutine is running...]")
 	defer fmt.Println("connID = ", c.ConnID, " Reader is exit, remote addr is ", c.RemoteAddr().String())
 	defer c.Stop()
 
@@ -94,6 +98,24 @@ func (c *Connection) startReader() {
 	}
 }
 
+// StartWriter 启动连接的写数据业务
+func (c *Connection) StartWriter() {
+	fmt.Println("[Writer Goroutine is running...]")
+	defer fmt.Println(c.RemoteAddr().String(), " [conn Writer exit!]")
+
+	for {
+		select {
+		case data := <-c.msgChan:
+			if _, err := c.Conn.Write(data); err != nil {
+				fmt.Println("Send data error, ", err)
+				return
+			}
+		case <-c.ExitChan:
+			return
+		}
+	}
+}
+
 // 提供一个SendMsg方法，将我们要发送的数据先进行封包，再发送
 func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	if c.isClosed {
@@ -109,11 +131,8 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 		return errors.New("Pack error msg")
 	}
 
-	_, err = c.Conn.Write(pack)
-	if err != nil {
-		fmt.Println("Write msg id:", msgId, " error:", err)
-		return errors.New("conn Write error")
-	}
+	// 将数据发送到channel中
+	c.msgChan <- pack
 
 	return nil
 }
@@ -125,6 +144,7 @@ func (c *Connection) Start() {
 	// 启动从当前连接的读数据的业务
 	go c.startReader()
 	// TODO 启动从当前连接写数据的业务
+	go c.StartWriter()
 }
 
 // Stop 停止连接，结束当前连接的工作
@@ -139,9 +159,12 @@ func (c *Connection) Stop() {
 
 	// 告知Writer关闭
 	c.ExitChan <- true
-	close(c.ExitChan)
 
 	fmt.Println("Conn Stop() ConnID = ", c.ConnID)
+
+	// 回收资源
+	close(c.ExitChan)
+	close(c.msgChan)
 }
 
 // GetTCPConnection 获取连接的原始socket
