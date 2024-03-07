@@ -25,7 +25,7 @@ func main() {
 		// 发送封包message消息
 		dp := tnet.NewDataPack()
 
-		pack, err := dp.Pack(tnet.NewMsgPack(0, []byte("hello, gos!")))
+		pack, err := dp.Pack(tnet.NewMsgPack(1, []byte("hello, gos!")))
 		if err != nil {
 			fmt.Println("Pack error:", err)
 			break
