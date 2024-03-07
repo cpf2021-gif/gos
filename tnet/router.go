@@ -14,3 +14,5 @@ func (br *BaseRouter) PreHandle(request tiface.IRequest) {}
 func (br *BaseRouter) Handle(request tiface.IRequest) {}
 
 func (br *BaseRouter) PostHandle(request tiface.IRequest) {}
+
+func (br *BaseRouter) Do(request tiface.IRequest) {}

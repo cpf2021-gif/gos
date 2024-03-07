@@ -17,8 +17,8 @@ type Server struct {
 	IP string
 	// 服务器的端口
 	Port int
-	// 当前Server添加一个router，server注册的连接对应的处理业务
-	Router tiface.IRouter
+	// 当前Server添加一个MsgHandle，用来绑定MsgID和对应的处理业务API关系
+	MsgHandle tiface.IMsgHandle
 }
 
 // Server implements tiface.IServer
@@ -62,7 +62,7 @@ func (s *Server) Start() {
 			}
 
 			// 绑定业务方法和客户端连接
-			dealConn := NewConnection(conn, cid, s.Router)
+			dealConn := NewConnection(conn, cid, s.MsgHandle)
 			cid++
 
 			// 启动当前的连接业务处理
@@ -85,8 +85,8 @@ func (s *Server) Serve() {
 	select {}
 }
 
-func (s *Server) AddRouter(router tiface.IRouter) {
-	s.Router = router
+func (s *Server) AddRouter(msgId uint32, router tiface.IRouter) {
+	s.MsgHandle.AddRouter(msgId, router)
 	fmt.Println("Add Router successfully!")
 }
 
@@ -97,6 +97,7 @@ func NewServer() tiface.IServer {
 		IPVersion: "tcp4",
 		IP:        utils.GlobalConfig.ServerCfg.Host,
 		Port:      utils.GlobalConfig.ServerCfg.TcpPort,
+		MsgHandle: NewMsgHandle(),
 	}
 
 	return s

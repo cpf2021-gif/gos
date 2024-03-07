@@ -9,4 +9,12 @@ type IRouter interface {
 
 	// 处理业务之后的Hook
 	PostHandle(request IRequest)
+
+	/*
+		依次执行
+		PreHandle
+		Handle
+		PostHandle
+	*/
+	Do(request IRequest)
 }

@@ -19,8 +19,8 @@ type Connection struct {
 	// 当前连接的状态
 	isClosed bool
 
-	// 该连接处理的方法Router
-	Router tiface.IRouter
+	// 绑定MsgID和对应的处理业务API关系
+	MsgHandle tiface.IMsgHandle
 
 	// 告知当前连接已经退出/停止的channel
 	ExitChan chan bool
@@ -30,13 +30,13 @@ type Connection struct {
 var _ tiface.IConnection = (*Connection)(nil)
 
 // NewConnection 初始化连接模块的方法
-func NewConnection(conn *net.TCPConn, connID uint32, router tiface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandle tiface.IMsgHandle) *Connection {
 	c := &Connection{
-		Conn:     conn,
-		ConnID:   connID,
-		isClosed: false,
-		Router:   router,
-		ExitChan: make(chan bool, 1),
+		Conn:      conn,
+		ConnID:    connID,
+		isClosed:  false,
+		MsgHandle: msgHandle,
+		ExitChan:  make(chan bool, 1),
 	}
 
 	return c
@@ -86,9 +86,10 @@ func (c *Connection) startReader() {
 
 		// 执行注册路由
 		go func(request tiface.IRequest) {
-			c.Router.PreHandle(&req)
-			c.Router.Handle(&req)
-			c.Router.PostHandle(&req)
+			// c.Router.PreHandle(request)
+			// c.Router.Handle(request)
+			// c.Router.PostHandle(request)
+			c.MsgHandle.DoMsgHandler(request)
 		}(&req)
 	}
 }
